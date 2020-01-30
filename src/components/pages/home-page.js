@@ -1,8 +1,10 @@
 import React from "react";
-import './home-page.css';
+import CardList from "../card-list/card-list";
 
 const HomePage = () => {
-    return <div>HomePage</div>
+    return (
+        <CardList />
+    )
 };
 
 export default HomePage

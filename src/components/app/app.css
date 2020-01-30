@@ -1,0 +1,6 @@
+main.container{
+    background-color: rgba(221, 221, 221, 0.47);
+    background-image: url(../../img/bg.png);
+    background-repeat: repeat;
+    background-position: 0 0;
+}

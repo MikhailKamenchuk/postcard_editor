@@ -1,12 +1,14 @@
 import React from "react";
 import Logo from '../../img/logo.png'
-import "./top-bar.css";
-// import {Link} from "react-router-dom";
-function TopBar() {
+import "./header.css";
+import {Link} from "react-router-dom";
+
+function Header() {
     return (
-        <header className="header">
-            <img className="logo" src={Logo} alt='Logo' />
+        <header className="header row">
+            <Link to='/'><img className="logo" src={Logo} alt='Logo' /></Link>
+            <Link to='/editor'><button className='btn btn-info'>Go to editor</button></Link>
         </header>
     );
 }
-export default TopBar;
+export default Header;

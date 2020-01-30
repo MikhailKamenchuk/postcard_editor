@@ -1,12 +1,15 @@
 import React, { Component } from "react";
 import {connect} from "react-redux";
-import FontFamilyPicker from "../font-picker/font-picker";
 import html2canvas from "html2canvas";
-import { CirclePicker  } from 'react-color';
-import {changeInscriptionColor} from '../../actions'
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import {popover} from "../../popover/popover";
+import withPostcardService from "../hoc/with-postcard-service";
+import {withRouter} from "react-router-dom";
+import {cardRequested,cardLoaded, cardError} from "../../actions";
+import Spinner from "../spinner/spinner";
+import ErrorIndicator from "../error-indicator/error-indicator";
 
-
-class EditorPage extends Component {
+class Editor extends Component {
     saveCard = () => {
         html2canvas(document.getElementById('preview'), {
             scrollX: -window.scrollX,
@@ -20,30 +23,38 @@ class EditorPage extends Component {
         });
     };
 
-    handleChangeComplete = (color) => {
-        this.props.changeInscriptionColor(color.hex);
-        console.log(this.props.changeInscriptionColor(color.hex))
-    };
-
+    componentDidMount() {
+        const {
+            postcardService,
+            cardRequested,
+            cardLoaded,
+            cardError,
+            match} = this.props;
+        cardRequested();
+        postcardService.getCard(match.params.id)
+            .then(data => cardLoaded(data.src))
+            .catch(error => cardError(error))
+    }
 
     render() {
+        const {loading, error, selectedImage, inscriptionStyles} = this.props;
+        if (loading){
+            return <Spinner/>
+        }
+        if(error){
+            return <ErrorIndicator/>
+        }
         return (
             <div className='row'>
                 <div className="previewWrap column" id="preview">
-                    <img src={this.props.selectedImage} width='300' alt='source-picture'/>
-                    <p
-                        style={this.props.inscriptionStyles}
-                        contenteditable='true'
-                        className="apply-font"
-                    >The font will be applied to this text.</p>
-                </div>
-                <div className='column'>
-                    <FontFamilyPicker />
-                    <CirclePicker
-                        color={ this.props.inscriptionColor }
-                        onChangeComplete={ this.handleChangeComplete }
-                    />
-                    <button className='btn btn-primary' onClick={this.saveCard}>Button</button>
+                    <img src={selectedImage} width='300' alt='source-picture'/>
+                    <OverlayTrigger trigger="click" placement="right" overlay={popover(this.saveCard)}>
+                        <p  style={inscriptionStyles}
+                            contentEditable
+                            suppressContentEditableWarning={true}
+                            className="apply-font"
+                        >The font will be applied to this text.</p>
+                    </OverlayTrigger>
                 </div>
                 <div id="canvasImg" className="p-4 border column">
                     <img id="screenShot" alt='received-picture'/>
@@ -56,14 +67,16 @@ class EditorPage extends Component {
 const mapStateToProps = (state) => {
     return {
         inscriptionStyles: state.inscriptionStyles,
-        selectedImage: state.selectedImage
+        selectedImage: state.selectedImage,
+        loading: state.loading,
+        error: state.error
     }
 };
 
-const mapDispatchToProps = () => {
-    return {
-        changeInscriptionColor
-    }
+const mapDispatchToProps = {
+    cardRequested,
+    cardLoaded,
+    cardError
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditorPage)
+export default withRouter(withPostcardService()(connect(mapStateToProps, mapDispatchToProps)(Editor)))
